@@ -274,7 +274,7 @@ for i in fList:
             for m in range(outputCount):
                 Txoutput = dataholders('Txoutput')
                 tmpHex = read_bytes(f,8)
-                Value = int(tmpHex,16)
+                Value = int(tmpHex,16)/100000000.0
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = ''
                 b = f.read(1)
