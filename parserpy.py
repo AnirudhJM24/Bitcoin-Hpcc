@@ -71,8 +71,8 @@ def dataholders(dataobj):
         'Magic number':'',
         'Block size':'',
         'SHA 256':'',
-        'version number':'',
-        'SHA 256 prev':'',
+        'Version number':'',
+        'SHA 256 PREV':'',
         'MerkleRoot hash':'',
         'Timestamp':'',
         'Random number':'',
@@ -161,7 +161,7 @@ for i in fList:
         bitcoindat['Timestamp'] = tmpHex
         tmpHex = read_bytes(f,4)
         #resList.append('Difficulty = ' + tmpHex)
-        bitcoindat['Difficulty'] = tmpHex
+        bitcoindat['Difficulty'] = int(tmpHex,16)
         tmpHex = read_bytes(f,4)
         #resList.append('Random number = ' + tmpHex)
         bitcoindat['Random number'] = tmpHex
