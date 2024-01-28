@@ -274,7 +274,7 @@ for i in fList:
             for m in range(outputCount):
                 Txoutput = dataholders('Txoutput')
                 tmpHex = read_bytes(f,8)
-                Value = tmpHex
+                Value = int(tmpHex,16)
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = ''
                 b = f.read(1)
@@ -337,8 +337,10 @@ for i in fList:
     print(len(resList[0]['Transactions']))
     print(resList[0]['Transactions count'])
 
+
+resultsdir = 'results/'
 for i,data in enumerate(resList):
-    filename = 'blk'+str(i)+'.json'
+    filename = resultsdir+'blk'+str(i)+'.json'
     bitcoinfinal['data'] = data
     with open(filename, 'w') as json_file:
       json.dump(bitcoinfinal, json_file)
