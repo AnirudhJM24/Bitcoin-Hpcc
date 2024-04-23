@@ -1,5 +1,6 @@
 {
     "ecl.launchConfiguration": "not found",
     "ecl.targetCluster": {},
-    "ecl.eclccPath": "C:\\Program Files (x86)\\HPCCSystems\\9.4.24\\clienttools\\bin\\eclcc.exe"
+    "ecl.eclccPath": "C:\\Program Files (x86)\\HPCCSystems\\9.4.24\\clienttools\\bin\\eclcc.exe",
+    "git.ignoreLimitWarning": true
 }

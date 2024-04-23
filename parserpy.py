@@ -3,10 +3,11 @@ import datetime
 import hashlib
 from collections import defaultdict
 import json
+from transaction import creatFinalTxJson
 
 
 bitcoinfinal = {"data" : []}
-
+transactionHashMap = defaultdict(lambda:{})
 
 
 def reverse(input):
@@ -22,7 +23,7 @@ def reverse(input):
             T = ''
         return (Res)
 
-def merkle_root(lst): # https://gist.github.com/anonymous/7eb080a67398f648c1709e41890f8c44
+def merkle_root(lst): 
     sha256d = lambda x: hashlib.sha256(hashlib.sha256(x).digest()).digest()
     hash_pair = lambda x, y: sha256d(x[::-1] + y[::-1])[::-1]
     if len(lst) == 1: return lst[0]
@@ -54,10 +55,9 @@ def read_varint(file):
         data = b + data
     return data
 
-dirA = 'data/' # Directory where blk*.dat files are stored
+dirA = 'data/' 
 #dirA = sys.argv[1]
-dirB = "C:/Users/jmani/Documents/blk00001.txt" # Directory where to save parsing results
-#dirA = sys.argv[2]
+
 
 fList = os.listdir(dirA)
 fList = [x for x in fList if (x.endswith('.dat') and x.startswith('blk'))]
@@ -82,6 +82,7 @@ def dataholders(dataobj):
         }
 
     Transactiondat = {
+            
             "txvn": "transaction_id",
             "input count" : 0,
             "inputs": [
@@ -119,6 +120,7 @@ def dataholders(dataobj):
 
 resList = []
 blkList = []
+
 for i in fList:
     nameSrc = i
     print('block number = ', i)
@@ -131,10 +133,8 @@ for i in fList:
     while f.tell() != fSize:
         bitcoindat = dataholders('bitcoindat')
         tmpHex = read_bytes(f,4)
-        #resList.append('Magic number = ' + tmpHex)
         bitcoindat['Magic number'] = tmpHex
         tmpHex = read_bytes(f,4)
-        #resList.append('Block size = ' + tmpHex)
         bitcoindat['Block size'] = tmpHex
         tmpPos3 = f.tell()
         tmpHex = read_bytes(f,80,'B')
@@ -143,43 +143,33 @@ for i in fList:
         tmpHex = hashlib.new('sha256', tmpHex).digest()
         tmpHex = tmpHex[::-1]        
         tmpHex = tmpHex.hex().upper()
-        #resList.append('SHA256 hash of the current block hash = ' + tmpHex)
         bitcoindat['SHA 256'] = tmpHex
         f.seek(tmpPos3,0)
         tmpHex = read_bytes(f,4)
-        #resList.append('Version number = ' + tmpHex)
         bitcoindat['Version number'] = tmpHex
         tmpHex = read_bytes(f,32)
-        #resList.append('SHA256 hash of the previous block hash = ' + tmpHex)
         bitcoindat['SHA 256 PREV'] = tmpHex
         tmpHex = read_bytes(f,32)
-        #resList.append('MerkleRoot hash = ' + tmpHex)
         bitcoindat['MerkleRoot hash'] = tmpHex
         MerkleRoot = tmpHex
         tmpHex = read_bytes(f,4)
-        #resList.append('Time stamp = ' + tmpHex)
         bitcoindat['Timestamp'] = tmpHex
         tmpHex = read_bytes(f,4)
-        #resList.append('Difficulty = ' + tmpHex)
         bitcoindat['Difficulty'] = int(tmpHex,16)
         tmpHex = read_bytes(f,4)
-        #resList.append('Random number = ' + tmpHex)
         bitcoindat['Random number'] = tmpHex
         tmpHex = read_varint(f)
         txCount = int(tmpHex,16)
-        #resList.append('Transactions count = ' + str(txCount))
-        #resList.append('')
         bitcoindat['Transactions count'] = txCount
         print('SHA 256 = ',bitcoindat['SHA 256'])
         print('Transactions count = ', txCount)
         tmpHex = ''; RawTX = ''; tx_hashes = []
-        #Iterating through the transactions
+
+        # iterating through transactions
         for k in range(txCount):
             Transactiondat = dataholders('Transactiondat')
             tmpHex = read_bytes(f,4)
-            #resList.append('TX version number = ' + tmpHex)
             Transactiondat['txvn'] = tmpHex
-            #print(Transactiondat['txvn'])
             RawTX = reverse(tmpHex)
             tmpHex = ''
             Witness = False
@@ -207,20 +197,16 @@ for i in fList:
                 b = b.hex().upper()
                 tmpHex = b + tmpHex
             inCount = int(tmpHex,16)
-            #resList.append('Inputs count = ' + tmpHex)
             Transactiondat['input count'] = inCount
-            #print(inCount)
             tmpHex = tmpHex + tmpB
             RawTX = RawTX + reverse(tmpHex)
             #iterating through inputs
             for m in range(inCount):
                 Txinput = dataholders('Txinput')
                 tmpHex = read_bytes(f,32)
-                #resList.append('TX from hash = ' + tmpHex)
                 Txinput['txid'] = tmpHex
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = read_bytes(f,4)                
-                #resList.append('N output = ' + tmpHex)
                 Txinput['vout'] = tmpHex
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = ''
@@ -243,11 +229,9 @@ for i in fList:
                 tmpHex = tmpHex + tmpB
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = read_bytes(f,scriptLength,'B')
-                #resList.append('Input script = ' + tmpHex)
                 Txinput['script_sig'] = tmpHex
                 RawTX = RawTX + tmpHex
                 tmpHex = read_bytes(f,4,'B')
-                #resList.append('Sequence number = ' + tmpHex)
                 Txinput['sequence'] = tmpHex
                 RawTX = RawTX + tmpHex
                 tmpHex = ''
@@ -269,7 +253,6 @@ for i in fList:
                 tmpHex = b + tmpHex
             outputCount = int(tmpHex,16)
             tmpHex = tmpHex + tmpB
-            #resList.append('Outputs count = ' + str(outputCount))
             RawTX = RawTX + reverse(tmpHex)
             for m in range(outputCount):
                 Txoutput = dataholders('Txoutput')
@@ -296,8 +279,6 @@ for i in fList:
                 tmpHex = tmpHex + tmpB
                 RawTX = RawTX + reverse(tmpHex)
                 tmpHex = read_bytes(f,scriptLength,'B')
-                #resList.append('Value = ' + Value)
-                #resList.append('Output script = ' + tmpHex)
                 Txoutput['value'] = Value
                 Txoutput['script_pubkey'] = tmpHex
                 RawTX = RawTX + tmpHex
@@ -311,21 +292,18 @@ for i in fList:
                         tmpHex = read_varint(f)
                         WitnessItemLength = int(tmpHex,16)
                         tmpHex = read_bytes(f,WitnessItemLength)
-                        #resList.append('Witness ' + str(m) + ' ' + str(j) + ' ' + str(WitnessItemLength) + ' ' + tmpHex)
                         tmpHex = ''
             Witness = False
             tmpHex = read_bytes(f,4)
-            #resList.append('Lock time = ' + tmpHex)
             RawTX = RawTX + reverse(tmpHex)
             tmpHex = RawTX
             tmpHex = bytes.fromhex(tmpHex)
             tmpHex = hashlib.new('sha256', tmpHex).digest()
             tmpHex = hashlib.new('sha256', tmpHex).digest()
             tmpHex = tmpHex[::-1]
-            tmpHex = tmpHex.hex().upper()
-            #resList.append('TX hash = ' + tmpHex)
+            tmpHex = tmpHex.hex()
+            transactionHashMap[tmpHex] = Transactiondat
             tx_hashes.append(tmpHex)
-            #resList.append(''); tmpHex = ''; RawTX = ''
             bitcoindat['Transactions'].append(Transactiondat)
         a += 1
         tx_hashes = [bytes.fromhex(h) for h in tx_hashes]
@@ -334,9 +312,13 @@ for i in fList:
             print ('Merkle roots does not match! >',MerkleRoot,tmpHex)
         resList.append(bitcoindat)
     f.close()
-    print(len(resList[0]['Transactions']))
-    print(resList[0]['Transactions count'])
 
+
+
+resultsdir = 'results/'
+txdata = creatFinalTxJson(transactionHashMap)
+with open("transactions.json",'w') as jf:
+    json.dump(txdata, jf)
 
 resultsdir = 'results/'
 for i,data in enumerate(resList):
@@ -344,3 +326,4 @@ for i,data in enumerate(resList):
     bitcoinfinal['data'] = data
     with open(filename, 'w') as json_file:
       json.dump(bitcoinfinal, json_file)
+
